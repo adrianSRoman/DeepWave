@@ -238,14 +238,13 @@ def process_track(file_path, gt_path, mic='ambeo'):
                         gamma=apgd_gamma,
                         N_iter=apgd_N_iter,
                         tts=apgd_tts)
-        d_name = f'./dataset2/{track_filename.split(".")[0]}_freq{idx_freq}_singletrack.npz' 
+        d_name = f'./dataset/{track_filename.split(".")[0]}_freq{idx_freq}_singletrack.npz' 
         logging.info(f'Storing dataset to {d_name}')
         D_.to_file(d_name)
 
 
 if __name__ == '__main__':
     args = parse_args()
-
     warm_suffix = 'warm' if args['warm_start'] else 'cold'
     log_fname = (pathlib.Path(f'./dataset/D_{args["data"].stem}_{warm_suffix}.log')
                  .expanduser().absolute())
