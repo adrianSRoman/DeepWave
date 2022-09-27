@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import os
 import timeit
+import csv
 
 from load_metadata import GetTruth
 from load_metadata import LoadData
@@ -28,7 +29,7 @@ def ProcessTaskMetadata(this_task, arrays, data_dir, is_dev):
     # Read all recording IDs available for this task:
     recordings = sorted(glob.glob(os.path.join(task_dir, '*')))
     print("recordings", recordings)
-
+    truth_list = []
     # Parse through all recordings within this task:
     for this_recording in recordings:
         recording_id = int(this_recording.split('recording')[1])
@@ -46,25 +47,29 @@ def ProcessTaskMetadata(this_task, arrays, data_dir, is_dev):
             # Extract ground truth
             # position_array stores all optitrack measurements.
             # Extract valid measurements only (specified by required_time.valid_flag).
-            truth = GetTruth(this_array, position_array, position_source, required_time, is_dev)
-
-            # NOTE: we will get one truth per file, and so one .csv per truth!
-
-
-
-def Locata2DecaseFormat(tasks, metadata_path):
-    # TODO:
-    # - Get truths list (for all recordings under a task)
-    # - for each truth
-    #   - for each speaker, get the polar positions
-    #       -  dump data into csv format
-
-    # Pseudo code:
-    # for truth in truth_list:
-    #     for task in tasks:
-    #         for speaker in truth.source:
-    #             print(truth.source[speaker].polar_pos)
-    #             print("#####")
+            truth = GetTruth(this_array, position_array, position_source, required_time, recording_id, is_dev)
+            truth_list.append(truth)
+    return truth_list
 
 
-ProcessTaskMetadata(2, ["eigenmike"], "/Volumes/T7/LOCATA-dev", True)
+
+def Locata2DecaseFormat(tasks, data_dir, arrays=["eigenmike"], is_dev=True):
+    FS_POS = 120 # Position labeling done at 120Hz
+    for task_id in tasks:
+        truth_list = ProcessTaskMetadata(task_id, arrays, data_dir, is_dev)
+        for truth in truth_list:
+            out_filename = f'./task{task_id}_recording{truth.recording_id}.csv'
+            with open(out_filename, mode='w', newline='') as csv_file:
+                csv_writer = csv.writer(csv_file)
+                print("Loading {}".format(out_filename))
+                for iframe in range(0, truth.frames, FS_POS//10): # sample every 100msec
+                    for speaker in truth.source:
+                        csv_row = [iframe//12]
+                        csv_row.extend(truth.source[speaker].polar_pos[iframe])
+                        csv_writer.writerow(csv_row)
+
+
+Locata2DecaseFormat(["2"], "/Volumes/T7/LOCATA-dev", arrays=["eigenmike"], is_dev=True)
+
+
+# ProcessTaskMetadata(2, ["eigenmike"], "/Volumes/T7/LOCATA-dev", True)

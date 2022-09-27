@@ -158,7 +158,7 @@ def LoadData(this_array, args=None, log=logging, is_dev=True):
     return position_array, position_source, required_time 
 
 
-def GetTruth(this_array, position_array, position_source, required_time, is_dev=True):
+def GetTruth(this_array, position_array, position_source, required_time, recording_id, is_dev=True):
     """GetLocataTruth
     creates Namespace containing OptiTrac ground truth data for and relative to the specified array
     Inputs:
@@ -197,5 +197,7 @@ def GetTruth(this_array, position_array, position_source, required_time, is_dev=
             pol_pos = np.squeeze(np.matmul(truth.array.rotation.transpose(1, 2, 0), h_p.T[:, :, None]))
             # Returned in azimuth, elevation & radius
             truth.source[src_idx].polar_pos = cart2pol(pol_pos)
+            truth.frames = frames
+    truth.recording_id = recording_id
 
     return truth
