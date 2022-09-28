@@ -53,23 +53,23 @@ def ProcessTaskMetadata(this_task, arrays, data_dir, is_dev):
 
 
 
-def Locata2DecaseFormat(tasks, data_dir, arrays=["eigenmike"], is_dev=True):
+def Locata2DecaseFormat(tasks, data_dir, arrays=["eigenmike"], is_dev=True, coord_system="cartesian"):
     FS_POS = 120 # Position labeling done at 120Hz
     for task_id in tasks:
         truth_list = ProcessTaskMetadata(task_id, arrays, data_dir, is_dev)
         for truth in truth_list:
-            out_filename = f'./task{task_id}_recording{truth.recording_id}.csv'
+            out_filename = f'./metadata/task{task_id}_recording{truth.recording_id}.csv'
             with open(out_filename, mode='w', newline='') as csv_file:
                 csv_writer = csv.writer(csv_file)
-                print("Loading {}".format(out_filename))
+                print("Processing {}".format(out_filename))
                 for iframe in range(0, truth.frames, FS_POS//10): # sample every 100msec
                     for speaker in truth.source:
                         csv_row = [iframe//12]
-                        csv_row.extend(truth.source[speaker].polar_pos[iframe])
+                        if coord_system == "cartesian":
+                            csv_row.extend(truth.source[speaker].cart_pos[iframe])
+                        else: # polar
+                            csv_row.extend(truth.source[speaker].polar_pos[iframe])
                         csv_writer.writerow(csv_row)
 
 
-Locata2DecaseFormat(["2"], "/Volumes/T7/LOCATA-dev", arrays=["eigenmike"], is_dev=True)
-
-
-# ProcessTaskMetadata(2, ["eigenmike"], "/Volumes/T7/LOCATA-dev", True)
+Locata2DecaseFormat(["1", "2", "3", "4"], "/Volumes/T7/LOCATA-dev", arrays=["eigenmike"], is_dev=True, coord_system="cartesian")

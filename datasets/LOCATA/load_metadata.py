@@ -46,7 +46,7 @@ def cart2pol(cart):
     pol[:, 1] = np.arccos(z / pol[:, 2])
     # azimuth
     pol[:, 0] = wrapToPi(np.arctan2(y, x) - (np.pi / 2))
-    return pol
+    return pol, cart
 
 
 def load_wav(fnames, obj_type):
@@ -196,7 +196,7 @@ def GetTruth(this_array, position_array, position_source, required_time, recordi
             # Apply rotation / translation of array to source
             pol_pos = np.squeeze(np.matmul(truth.array.rotation.transpose(1, 2, 0), h_p.T[:, :, None]))
             # Returned in azimuth, elevation & radius
-            truth.source[src_idx].polar_pos = cart2pol(pol_pos)
+            truth.source[src_idx].polar_pos, truth.source[src_idx].cart_pos = cart2pol(pol_pos)
             truth.frames = frames
     truth.recording_id = recording_id
 
