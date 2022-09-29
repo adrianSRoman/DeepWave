@@ -93,13 +93,14 @@ def get_track_data(file_path, gt_path):
     rate, data = wavfile.read(file_path)
 
     if gt_path:
-        gt_dict = load_output_format_file(gt_path)
+        gt_dict = load_output_format_file(gt_path, coord_system="polar") # NOTE: new - only for polar
     else:
         nsamps = int(10 * (data.shape[0] / rate))
         gt_dict = dict()
         for i in range(nsamps):
             gt_dict[i] = [[0, 0]]
 
+    gt_dict = convert_format_polar_to_cartesian(gt_dict) # NOTE: new - only for polar
     max_frame = max(gt_dict.keys()) # get total number of frames
     sky_model_list = []
     for k in range(max_frame):

@@ -119,21 +119,24 @@ def load_output_format_file(_output_format_file, coord_system="cartesian"):
         _frame_ind = int(_words[0])
         if _frame_ind not in _output_dict:
             _output_dict[_frame_ind] = []
-        _output_dict[_frame_ind].append([float(_words[1]), float(_words[2]), float(_words[3])])
+        if coord_system == "cartesian":
+            _output_dict[_frame_ind].append([float(_words[1]), float(_words[2]), float(_words[3])])
+        elif coord_system == "polar":
+            _output_dict[_frame_ind].append([float(_words[1]), float(_words[2]), float(_words[3])])
     _fid.close()
     return _output_dict
 
-def convert_format_polar_to_cartesian(in_dict, dist=2): 
-    # NOTE: dist=2, for now we will assume all objects are located at 2m away from the speaker
+def convert_format_polar_to_cartesian(in_dict): 
     out_dict = {}
     for frame_cnt in in_dict.keys():
         if frame_cnt not in out_dict:
             out_dict[frame_cnt] = []
             for tmp_val in in_dict[frame_cnt]:
-                ele_rad = tmp_val[1]*np.pi/180.
-                azi_rad = tmp_val[0]*np.pi/180
+                ele_rad = tmp_val[1] 
+                azi_rad = tmp_val[0]
 
                 tmp_label = np.cos(ele_rad)
+                dist = tmp_val[2]
                 x = dist * np.cos(azi_rad) * tmp_label
                 y = dist * np.sin(azi_rad) * tmp_label
                 z = dist * np.sin(ele_rad)

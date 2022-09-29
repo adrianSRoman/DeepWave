@@ -67,9 +67,9 @@ def Locata2DecaseFormat(tasks, data_dir, arrays=["eigenmike"], is_dev=True, coor
                         csv_row = [iframe//12]
                         if coord_system == "cartesian":
                             csv_row.extend(truth.source[speaker].cart_pos[iframe])
-                        else: # polar
+                        elif coord_system == "polar":
                             csv_row.extend(truth.source[speaker].polar_pos[iframe])
                         csv_writer.writerow(csv_row)
 
 
-Locata2DecaseFormat(["1", "2", "3", "4"], "/Volumes/T7/LOCATA-dev", arrays=["eigenmike"], is_dev=True, coord_system="cartesian")
+Locata2DecaseFormat(["1", "2", "3", "4"], "/Volumes/T7/LOCATA-dev", arrays=["eigenmike"], is_dev=True, coord_system="polar")

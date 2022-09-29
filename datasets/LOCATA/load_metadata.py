@@ -43,7 +43,7 @@ def cart2pol(cart):
     # radius
     pol[:, 2] = np.sqrt(np.abs(x) ** 2 + np.abs(y) ** 2 + np.abs(z) ** 2)
     # elev
-    pol[:, 1] = np.arccos(z / pol[:, 2])
+    pol[:, 1] = np.arccos(z / pol[:, 2]) - np.pi/2
     # azimuth
     pol[:, 0] = wrapToPi(np.arctan2(y, x) - (np.pi / 2))
     return pol, cart
