@@ -43,9 +43,9 @@ def cart2pol(cart):
     # radius
     pol[:, 2] = np.sqrt(np.abs(x) ** 2 + np.abs(y) ** 2 + np.abs(z) ** 2)
     # elev
-    pol[:, 1] = np.arccos(z / pol[:, 2]) - np.pi/2
+    pol[:, 1] = np.rad2deg(np.arccos(z / pol[:, 2]) - np.pi/2)
     # azimuth
-    pol[:, 0] = wrapToPi(np.arctan2(y, x) - (np.pi / 2))
+    pol[:, 0] = np.rad2deg(wrapToPi(np.arctan2(y, x) - (np.pi / 2)))
     return pol, cart
 
 
@@ -109,6 +109,22 @@ def load_txt(fnames, obj_type):
             mic=_mic)
     return obj
 
+def load_txt_vad(fnames, obj_type):
+    obj = Namespace()
+    obj.data = dict()
+    for this_txt in fnames:
+        # Load data:
+        txt_table = pd.read_csv(this_txt, sep='\t', header=0)
+        _vad = txt_table[['VAD']].values.T
+
+        mics = list(set([x.split('_')[0] for x in txt_table if 'mic' in x]))
+        # Array name:
+        this_obj = os.path.basename(this_txt).replace('.txt', '')
+        this_obj = this_obj.replace('{}_'.format(obj_type), '')
+
+        # Copy to namespace:
+        obj.data[str(this_obj)] = Namespace(vad=_vad)
+    return obj
 
 def LoadData(this_array, args=None, log=logging, is_dev=True):
     """loads LOCATA csv metadata
@@ -150,15 +166,19 @@ def LoadData(this_array, args=None, log=logging, is_dev=True):
     else:
         position_source = None
 
+    # Voice activity data
+    vad_source_idx = [x for x in txt_fnames if 'VAD_source' in x]
+    vad_source = load_txt_vad(vad_source_idx, 'VAD_source')
+
     # Position array data:
     position_array_idx = [x for x in txt_fnames if 'position_array' in x]
     position_array = load_txt(position_array_idx, 'position_array')
 
     # Outputs:
-    return position_array, position_source, required_time 
+    return position_array, position_source, required_time, vad_source 
 
 
-def GetTruth(this_array, position_array, position_source, required_time, recording_id, is_dev=True):
+def GetTruth(this_array, position_array, position_source, vad_source, required_time, recording_id, is_dev=True):
     """GetLocataTruth
     creates Namespace containing OptiTrac ground truth data for and relative to the specified array
     Inputs:
@@ -185,6 +205,7 @@ def GetTruth(this_array, position_array, position_source, required_time, recordi
     if is_dev:
         frames = int(np.sum(required_time.valid_flag))
         truth.source = position_source.data
+        truth.vad = vad_source.data
         # All sources for this recording
         for src_idx in truth.source:
             for field in truth.source[src_idx].__dict__:
